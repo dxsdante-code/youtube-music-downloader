@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music Downloader</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: rgba(15, 23, 42, 0.9);
+        --panel-alt: #111827;
+        --text: #f8fafc;
+        --muted: #cbd5e1;
+        --primary: #22c55e;
+        --primary-dark: #16a34a;
+        --warning: #facc15;
+        --error: #fca5a5;
+        --success: #86efac;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #020817, #0f172a);
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+        padding: 24px;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 760px;
+        background: var(--panel);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 24px;
+        text-align: center;
+        font-size: clamp(2rem, 3vw, 2.4rem);
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      input, select, button {
+        width: 100%;
+        border-radius: 12px;
+        padding: 14px 16px;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: var(--text);
+        font-size: 1rem;
+      }
+
+      input, select {
+        margin-bottom: 18px;
+      }
+
+      .row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .row > div {
+        flex: 1;
+        min-width: 180px;
+      }
+
+      .checkbox {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--muted);
+        margin: 10px 0 18px;
+      }
+
+      .checkbox input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--primary);
+      }
+
+      button {
+        border: none;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s ease, filter 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.08);
+      }
+
+      button:disabled {
+        opacity: 0.8;
+        cursor: wait;
+      }
+
+      .status {
+        margin-top: 24px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--muted);
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+
+      .warning { color: var(--warning); }
+      .success { color: var(--success); }
+      .error { color: var(--error); }
+
+      .mini {
+        margin-top: 26px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .mini h3 {
+        margin: 0 0 12px;
+      }
+
+      .mini ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .mini li {
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Descargador de música</h1>
+
+      <label for="url">URL de YouTube</label>
+      <input id="url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+
+      <div class="row">
+        <div>
+          <label for="format">Formato</label>
+          <select id="format">
+            <option value="mp3">MP3</option>
+            <option value="m4a">M4A</option>
+            <option value="wav">WAV</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="quality">Calidad</label>
+          <select id="quality">
+            <option value="0">Automática</option>
+            <option value="9">Baja</option>
+            <option value="5">Media</option>
+            <option value="2">Alta</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="checkbox">
+        <input type="checkbox" id="audioOnly" checked />
+        <span>Extraer solo audio</span>
+      </label>
+
+      <button id="downloadBtn">Descargar música</button>
+
+      <div id="status" class="status warning">
+        Pega una URL válida y presiona “Descargar música”.
+      </div>
+
+      <div class="mini">
+        <h3>Nota</h3>
+        <ul>
+          <li>La descarga puede tardar unos segundos.</li>
+          <li>En Vercel, funciona mejor con archivos de tamaño moderado.</li>
+          <li>Respeta los derechos de autor y la política del sitio.</li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      const statusEl = document.getElementById('status');
+      const button = document.getElementById('downloadBtn');
+
+      function setStatus(message, type = 'warning') {
+        statusEl.textContent = message;
+        statusEl.className = `status ${type}`;
+      }
+
+      button.addEventListener('click', async () => {
+        const url = document.getElementById('url').value.trim();
+        const format = document.getElementById('format').value;
+        const quality = document.getElementById('quality').value;
+        const audioOnly = document.getElementById('audioOnly').checked;
+
+        if (!url) {
+          setStatus('Debes ingresar una URL válida.', 'error');
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'Descargando...';
+        setStatus('Preparando la descarga...', 'warning');
+
+        try {
+          const response = await fetch('/api/download', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, format, quality, audioOnly })
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Error al generar la descarga.');
+          }
+
+          const blob = await response.blob();
+          const disposition = response.headers.get('Content-Disposition') || '';
+          const fileNameMatch = disposition.match(/filename\*=UTF-8''(.+)|filename="?([^";]+)"?/i);
+          const fileName = fileNameMatch
+            ? decodeURIComponent((fileNameMatch[1] || fileNameMatch[2] || 'audio').replace(/\+/g, ' '))
+            : 'audio.' + format;
+
+          const urlObject = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = urlObject;
+          anchor.download = fileName;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(urlObject);
+
+          setStatus('¡Descarga completada! El archivo se está guardando.', 'success');
+        } catch (error) {
+          setStatus(`Error: ${error.message}`, 'error');
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Descargar música';
+        }
+      });
+    </script>
+  </body>
+</html>
