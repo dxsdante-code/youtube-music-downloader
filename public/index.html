@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YouTube Music Downloader</title>
+  <title>Music Downloader</title>
   <style>
     :root {
       --bg: #0f172a;
       --panel: rgba(15, 23, 42, 0.95);
-      --border: rgba(255, 255, 255, 0.08);
+      --border: rgba(255,255,255,0.08);
       --text: #f8fafc;
       --muted: #cbd5e1;
       --primary: #10b981;
@@ -16,12 +16,10 @@
       --warning: #f59e0b;
       --error: #ef4444;
       --success: #10b981;
-      --shadow: rgba(0, 0, 0, 0.4);
+      --shadow: rgba(0,0,0,0.4);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -29,11 +27,10 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #020817 0%, #0f172a 100%);
+      background: linear-gradient(135deg, #020817, #0f172a);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-family: Arial, sans-serif;
       padding: 20px;
-      line-height: 1.6;
     }
 
     .container {
@@ -42,13 +39,10 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 24px;
-      grid-auto-flow: dense;
     }
 
     @media (max-width: 768px) {
-      .container {
-        grid-template-columns: 1fr;
-      }
+      .container { grid-template-columns: 1fr; }
     }
 
     .card {
@@ -70,7 +64,6 @@
 
     h2 {
       font-size: 1.3rem;
-      color: var(--text);
     }
 
     label {
@@ -78,7 +71,6 @@
       margin-bottom: 8px;
       color: var(--muted);
       font-weight: 600;
-      font-size: 0.95rem;
     }
 
     input, select, textarea {
@@ -90,19 +82,12 @@
       color: var(--text);
       font-size: 1rem;
       margin-bottom: 16px;
-      transition: border-color 0.2s;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
     }
 
     textarea {
       resize: vertical;
       min-height: 100px;
       font-family: monospace;
-      font-size: 0.9rem;
     }
 
     .row {
@@ -115,16 +100,15 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 12px;
       color: var(--muted);
+      margin-bottom: 16px;
     }
 
-    .checkbox-group input[type="checkbox"] {
+    .checkbox-group input {
       width: 18px;
       height: 18px;
       margin: 0;
       accent-color: var(--primary);
-      cursor: pointer;
     }
 
     button {
@@ -143,38 +127,28 @@
     button:hover:not(:disabled) {
       transform: translateY(-2px);
       filter: brightness(1.1);
-      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
     }
 
     button:disabled {
-      opacity: 0.6;
+      opacity: 0.7;
       cursor: wait;
     }
 
     .status {
+      margin-top: 16px;
       padding: 14px 16px;
       border-radius: 10px;
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid var(--border);
-      line-height: 1.6;
-      white-space: pre-wrap;
-      font-size: 0.95rem;
-      font-family: monospace;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
-    .status.warning {
       color: var(--warning);
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      line-height: 1.6;
     }
 
-    .status.success {
-      color: var(--success);
-    }
-
-    .status.error {
-      color: var(--error);
-    }
+    .status.success { color: var(--success); }
+    .status.error { color: var(--error); }
+    .status.warning { color: var(--warning); }
 
     .downloads-list {
       max-height: 300px;
@@ -185,163 +159,73 @@
       padding: 12px;
       border-bottom: 1px solid var(--border);
       font-size: 0.9rem;
-    }
-
-    .download-item:last-child {
-      border-bottom: none;
-    }
-
-    .empty-state {
       color: var(--muted);
-      text-align: center;
-      padding: 20px;
     }
 
-    .badge {
-      display: inline-block;
-      background: var(--primary);
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .badge.error {
-      background: var(--error);
-    }
-
-    .info-box {
-      background: rgba(16, 185, 129, 0.1);
-      border-left: 4px solid var(--primary);
-      padding: 12px 16px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      color: var(--muted);
-      margin-bottom: 16px;
-    }
+    .download-item:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Descarga Individual -->
     <div class="card card-full">
-      <h1>🎵 Descargador de Música</h1>
-      <div class="info-box">
-        Powered by yt-dlp. Soporta YouTube, SoundCloud, Spotify, y cientos de sitios más.
-      </div>
+      <h1>🎵 Descargador de música</h1>
     </div>
 
-    <!-- Panel de Descarga Individual -->
     <div class="card">
       <h2>Descargar URL</h2>
 
-      <label for="singleUrl">URL de vídeo/audio</label>
+      <label for="singleUrl">URL</label>
       <input id="singleUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." />
 
       <div class="row">
         <div>
           <label for="format">Formato</label>
           <select id="format">
-            <option value="mp3">🎵 MP3</option>
-            <option value="m4a">🎧 M4A</option>
-            <option value="wav">📻 WAV</option>
-            <option value="opus">🔊 OPUS</option>
+            <option value="mp3">MP3</option>
+            <option value="m4a">M4A</option>
+            <option value="wav">WAV</option>
+            <option value="opus">OPUS</option>
           </select>
         </div>
         <div>
           <label for="quality">Calidad</label>
           <select id="quality">
             <option value="0">Automática</option>
-            <option value="9">Baja (64kbps)</option>
-            <option value="5">Media (128kbps)</option>
-            <option value="2">Alta (192kbps)</option>
-          </select>
-        </div>
-      </div>
-
-      <label class="checkbox-group">
-        <input type="checkbox" id="audioOnly" checked />
-        <span>Solo audio</span>
-      </label>
-
-      <button id="downloadBtn">⬇️ Descargar</button>
-
-      <div id="status" class="status warning" style="margin-top: 16px;">
-        Pega una URL y presiona "Descargar"
-      </div>
-    </div>
-
-    <!-- Panel de Descarga Masiva -->
-    <div class="card">
-      <h2>Descargar en Lote</h2>
-
-      <label for="batchUrls">URLs (una por línea)</label>
-      <textarea id="batchUrls" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..."></textarea>
-
-      <div class="row">
-        <div>
-          <label for="batchFormat">Formato</label>
-          <select id="batchFormat">
-            <option value="mp3">MP3</option>
-            <option value="m4a">M4A</option>
-            <option value="wav">WAV</option>
-          </select>
-        </div>
-        <div>
-          <label for="batchQuality">Calidad</label>
-          <select id="batchQuality">
-            <option value="0">Automática</option>
+            <option value="9">Baja</option>
             <option value="5">Media</option>
             <option value="2">Alta</option>
           </select>
         </div>
       </div>
 
-      <button id="batchBtn">⬇️ Descargar Lote (Máx 10)</button>
+      <label class="checkbox-group">
+        <input type="checkbox" id="audioOnly" checked />
+        <span>Extraer solo audio</span>
+      </label>
 
-      <div id="batchStatus" class="status warning" style="margin-top: 16px;">
-        Ingresa URLs y presiona "Descargar Lote"
+      <button id="downloadBtn">⬇️ Descargar</button>
+
+      <div id="status" class="status warning">
+        Ingresa una URL válida y presiona "Descargar".
       </div>
     </div>
 
-    <!-- Descargas Recientes -->
     <div class="card">
-      <h2>Descargas Recientes</h2>
+      <h2>Descargas recientes</h2>
       <div id="downloadsList" class="downloads-list">
-        <div class="empty-state">Cargando...</div>
+        <div class="download-item">Cargando...</div>
       </div>
-      <button id="refreshBtn" style="margin-top: 12px; font-size: 0.9rem; padding: 10px;">
-        🔄 Actualizar
-      </button>
-    </div>
-
-    <!-- Información -->
-    <div class="card">
-      <h2>ℹ️ Información</h2>
-      <div style="font-size: 0.95rem; color: var(--muted); line-height: 1.8;">
-        <p>✅ Soporta múltiples plataformas</p>
-        <p>🎯 Descarga solo audio automáticamente</p>
-        <p>⚡ Rápido y sin anuncios</p>
-        <p>🔒 Privado - Sin almacenamiento</p>
-        <p style="margin-top: 16px; font-size: 0.85rem; opacity: 0.8;">
-          Respeta los derechos de autor. Úsalo solo para contenido que tengas permiso de descargar.
-        </p>
-      </div>
+      <button id="refreshBtn" style="margin-top: 12px;">🔄 Actualizar</button>
     </div>
   </div>
 
   <script>
     const statusEl = document.getElementById("status");
-    const batchStatusEl = document.getElementById("batchStatus");
     const downloadsList = document.getElementById("downloadsList");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const batchBtn = document.getElementById("batchBtn");
-    const refreshBtn = document.getElementById("refreshBtn");
 
-    function setStatus(el, msg, type = "warning") {
-      el.textContent = msg;
-      el.className = `status ${type}`;
+    function setStatus(msg, type = "warning") {
+      statusEl.textContent = msg;
+      statusEl.className = `status ${type}`;
     }
 
     async function loadDownloads() {
@@ -349,96 +233,86 @@
         const res = await fetch("/api/list-downloads");
         const data = await res.json();
         if (!data.files || data.files.length === 0) {
-          downloadsList.innerHTML = '<div class="empty-state">No hay descargas aún</div>';
+          downloadsList.innerHTML = '<div class="download-item">No hay descargas aún.</div>';
           return;
         }
+
         downloadsList.innerHTML = data.files
           .map(
-            (f) =>
-              `<div class="download-item">📁 <strong>${f.name}</strong><br><small>${f.size} • ${f.modified}</small></div>`
+            (file) =>
+              `<div class="download-item"><strong>${file.name}</strong><br><small>${file.size} • ${file.modified}</small></div>`
           )
           .join("");
       } catch (e) {
-        downloadsList.innerHTML = '<div class="empty-state error">Error al cargar descargas</div>';
+        downloadsList.innerHTML = '<div class="download-item">No se pudieron cargar las descargas.</div>';
       }
     }
 
-    downloadBtn.addEventListener("click", async () => {
+    document.getElementById("downloadBtn").addEventListener("click", async () => {
       const url = document.getElementById("singleUrl").value.trim();
       const format = document.getElementById("format").value;
       const quality = document.getElementById("quality").value;
+      const audioOnly = document.getElementById("audioOnly").checked;
+
       if (!url) {
-        setStatus(statusEl, "❌ Ingresa una URL válida", "error");
+        setStatus("❌ Debes ingresar una URL válida.", "error");
         return;
       }
-      downloadBtn.disabled = true;
-      downloadBtn.textContent = "⏳ Descargando...";
-      setStatus(statusEl, "⏳ Procesando...", "warning");
+
+      const btn = document.getElementById("downloadBtn");
+      btn.disabled = true;
+      btn.textContent = "⏳ Descargando...";
+      setStatus("⏳ Descargando...", "warning");
+
       try {
-        const res = await fetch("/api/download", {
+        const response = await fetch("/api/download", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url, format, quality })
+          body: JSON.stringify({ url, format, quality, audioOnly })
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Error desconocido");
-        setStatus(statusEl, "✅ ¡Descarga completada!", "success");
+
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || "Error desconocido");
+        }
+
+        // Si el servidor devuelve un archivo binario, lo descargamos directamente
+        if (contentType.includes("audio/") || contentType.includes("application/octet-stream") || contentType.includes("application/zip")) {
+          const blob = await response.blob();
+          const fileName = "audio." + format;
+          const urlObj = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = urlObj;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(urlObj);
+
+          setStatus("✅ Descarga iniciada correctamente.", "success");
+          await loadDownloads();
+          return;
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error || "No se pudo descargar.");
+        }
+
+        setStatus("✅ Descarga completada.", "success");
         await loadDownloads();
-      } catch (e) {
-        setStatus(statusEl, `❌ ${e.message}`, "error");
+      } catch (error) {
+        setStatus(`❌ ${error.message}`, "error");
       } finally {
-        downloadBtn.disabled = false;
-        downloadBtn.textContent = "⬇️ Descargar";
+        btn.disabled = false;
+        btn.textContent = "⬇️ Descargar";
       }
     });
 
-    batchBtn.addEventListener("click", async () => {
-      const urls = document
-        .getElementById("batchUrls")
-        .value.split("\n")
-        .map((u) => u.trim())
-        .filter(Boolean);
-      if (urls.length === 0) {
-        setStatus(batchStatusEl, "❌ Ingresa al menos una URL", "error");
-        return;
-      }
-      if (urls.length > 10) {
-        setStatus(batchStatusEl, "❌ Máximo 10 URLs", "error");
-        return;
-      }
-      batchBtn.disabled = true;
-      batchBtn.textContent = "⏳ Descargando...";
-      setStatus(batchStatusEl, `⏳ Descargando ${urls.length} archivos...`, "warning");
-      try {
-        const res = await fetch("/api/download-batch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            urls,
-            format: document.getElementById("batchFormat").value,
-            quality: document.getElementById("batchQuality").value
-          })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        setStatus(
-          batchStatusEl,
-          `✅ ${data.completed} exitosas, ${data.failed} fallidas`,
-          data.failed === 0 ? "success" : "warning"
-        );
-        await loadDownloads();
-      } catch (e) {
-        setStatus(batchStatusEl, `❌ ${e.message}`, "error");
-      } finally {
-        batchBtn.disabled = false;
-        batchBtn.textContent = "⬇️ Descargar Lote";
-      }
-    });
-
-    refreshBtn.addEventListener("click", loadDownloads);
-
+    document.getElementById("refreshBtn").addEventListener("click", loadDownloads);
     loadDownloads();
-    setInterval(loadDownloads, 30000);
   </script>
 </body>
 </html>
