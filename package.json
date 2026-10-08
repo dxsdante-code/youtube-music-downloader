@@ -1,13 +1,19 @@
 {
   "name": "youtube-music-downloader",
   "version": "1.0.0",
-  "private": true,
+  "description": "Descargador de música de YouTube con yt-dlp para Render",
+  "main": "server.js",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'Build complete'"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
+  "keywords": ["youtube", "music", "downloader", "yt-dlp"],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
-    "ffmpeg-static": "^5.2.0",
-    "youtube-dl-exec": "^5.0.0"
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
