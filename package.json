@@ -1,0 +1,13 @@
+{
+  "name": "youtube-music-downloader",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "youtube-dl-exec": "^5.0.0"
+  }
+}
