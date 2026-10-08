@@ -19,7 +19,7 @@ if (!fs.existsSync(downloadsDir)) {
 
 console.log(`📁 Carpeta de descargas: ${downloadsDir}`);
 
-// Endpoint para descargar una URL
+// Endpoint para descargar una URL CON DESCARGA DIRECTA
 app.post("/api/download", (req, res) => {
   const { url, format = "mp3", quality = "0" } = req.body;
 
@@ -38,14 +38,15 @@ app.post("/api/download", (req, res) => {
     return res.status(400).json({ error: "Formato no soportado." });
   }
 
+  const outputTemplate = path.join(downloadsDir, "%(title)s.%(ext)s");
+  
   const args = [
     "-x",
-    "--audio-format",
-    format,
-    "-o",
-    path.join(downloadsDir, "%(title)s.%(ext)s"),
+    "--audio-format", format,
+    "-o", outputTemplate,
     "--no-warnings",
-    "--quiet"
+    "--no-color",
+    "--print", "after_move:filepath"
   ];
 
   if (quality && quality !== "0") {
@@ -54,26 +55,83 @@ app.post("/api/download", (req, res) => {
 
   args.push(url);
 
+  console.log(`⏳ Descargando: ${url}`);
+
   let output = "";
-  const timeoutDuration = 5 * 60 * 1000; // 5 minutos
+  let filePath = null;
 
   const process = execFile("yt-dlp", args, { 
-    maxBuffer: 20 * 1024 * 1024,
-    timeout: timeoutDuration 
+    maxBuffer: 50 * 1024 * 1024,
+    timeout: 10 * 60 * 1000 
   }, (error, stdout, stderr) => {
+    
     if (error) {
-      console.error("Error en descarga:", error.message);
+      console.error("❌ Error en descarga:", error.message);
+      console.error("Stderr:", stderr);
       return res.status(500).json({
         error: "No se pudo completar la descarga.",
-        details: stderr || error.message
+        details: stderr || error.message,
+        code: error.code
       });
     }
 
-    res.json({
-      success: true,
-      message: "Descarga completada correctamente.",
-      output: stdout || output
+    // Extraer ruta del archivo del output
+    const lines = stdout.split("\n").filter(l => l.trim());
+    const lastLine = lines[lines.length - 1];
+    
+    if (!lastLine || !lastLine.includes("/")) {
+      console.error("❌ No se encontró la ruta del archivo en output:", stdout);
+      return res.status(500).json({
+        error: "No se generó el archivo de audio.",
+        details: "El archivo no fue creado correctamente."
+      });
+    }
+
+    filePath = lastLine.trim();
+
+    console.log(`📁 Archivo generado: ${filePath}`);
+
+    // Verificar que el archivo existe
+    if (!fs.existsSync(filePath)) {
+      console.error("❌ El archivo no existe:", filePath);
+      return res.status(500).json({
+        error: "El archivo fue creado pero no se puede acceder.",
+        details: filePath
+      });
+    }
+
+    // Obtener información del archivo
+    const stat = fs.statSync(filePath);
+    const fileName = path.basename(filePath);
+    
+    console.log(`✅ Enviando archivo: ${fileName} (${(stat.size / 1024 / 1024).toFixed(2)} MB)`);
+
+    // Configurar headers para descarga
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.setHeader("Content-Length", stat.size);
+
+    // Enviar el archivo
+    const fileStream = fs.createReadStream(filePath);
+    
+    fileStream.on("error", (err) => {
+      console.error("❌ Error leyendo archivo:", err);
+      res.status(500).json({ error: "Error al leer el archivo." });
     });
+
+    fileStream.pipe(res);
+
+    // Limpiar el archivo después de 5 minutos
+    setTimeout(() => {
+      try {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`🗑️ Archivo temporal eliminado: ${fileName}`);
+        }
+      } catch (e) {
+        console.error(`Error eliminando archivo temporal: ${e.message}`);
+      }
+    }, 5 * 60 * 1000);
   });
 
   process.stdout?.on("data", (data) => {
@@ -119,12 +177,10 @@ app.post("/api/download-batch", (req, res) => {
 
     const args = [
       "-x",
-      "--audio-format",
-      format,
-      "-o",
-      path.join(downloadsDir, "%(title)s.%(ext)s"),
+      "--audio-format", format,
+      "-o", path.join(downloadsDir, "%(title)s.%(ext)s"),
       "--no-warnings",
-      "--quiet"
+      "--no-color"
     ];
 
     if (quality && quality !== "0") {
@@ -133,11 +189,11 @@ app.post("/api/download-batch", (req, res) => {
 
     args.push(urlItem);
 
-    execFile("yt-dlp", args, { maxBuffer: 20 * 1024 * 1024, timeout: 5 * 60 * 1000 }, (error) => {
+    execFile("yt-dlp", args, { maxBuffer: 50 * 1024 * 1024, timeout: 10 * 60 * 1000 }, (error) => {
       if (error) {
         failed++;
         results.push({ url: urlItem, status: "error", error: error.message });
-        console.error(`Error descargando ${urlItem}:`, error.message);
+        console.error(`❌ Error descargando ${urlItem}:`, error.message);
       } else {
         completed++;
         results.push({ url: urlItem, status: "success" });
@@ -162,7 +218,8 @@ app.get("/api/list-downloads", (req, res) => {
           return {
             name: file,
             size: (stat.size / 1024 / 1024).toFixed(2) + " MB",
-            modified: new Date(stat.mtime).toLocaleString("es-ES")
+            modified: new Date(stat.mtime).toLocaleString("es-ES"),
+            path: filePath
           };
         } catch (e) {
           return null;
@@ -178,30 +235,30 @@ app.get("/api/list-downloads", (req, res) => {
   }
 });
 
-// Endpoint para limpiar descargas antiguas
-app.post("/api/cleanup", (req, res) => {
+// Endpoint para descargar un archivo existente
+app.get("/api/download-file/:filename", (req, res) => {
   try {
-    const files = fs.readdirSync(downloadsDir);
-    const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 horas
-    let deleted = 0;
+    const filename = decodeURIComponent(req.params.filename);
+    const filePath = path.join(downloadsDir, filename);
 
-    files.forEach((file) => {
-      try {
-        const filePath = path.join(downloadsDir, file);
-        const stat = fs.statSync(filePath);
-        if (now - stat.mtime.getTime() > maxAge) {
-          fs.unlinkSync(filePath);
-          deleted++;
-        }
-      } catch (e) {
-        console.error(`Error limpiando ${file}:`, e.message);
-      }
-    });
+    // Validar que la ruta está dentro de la carpeta permitida
+    if (!filePath.startsWith(downloadsDir)) {
+      return res.status(403).json({ error: "Acceso denegado." });
+    }
 
-    res.json({ success: true, message: `${deleted} archivos eliminados.` });
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "Archivo no encontrado." });
+    }
+
+    const stat = fs.statSync(filePath);
+
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.setHeader("Content-Length", stat.size);
+
+    fs.createReadStream(filePath).pipe(res);
   } catch (error) {
-    res.status(500).json({ error: "Error en la limpieza." });
+    res.status(500).json({ error: "Error al descargar el archivo." });
   }
 });
 
